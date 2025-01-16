@@ -10,13 +10,13 @@ from django.utils.encoding import force_bytes
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.conf import settings
-
+from django.core.mail import EmailMessage
 
 class UsersView(generics.ListAPIView):
     """
     View to list all users in the system.
 
-    This view is restricted to admin users only and uses the `ListAPIView` 
+    This view is restricted to admin users only and uses the `ListAPIView`
     from Django REST Framework to provide a read-only endpoint for listing users.
     """
     permission_classes = [IsAdminUser]
@@ -28,6 +28,7 @@ class RegistrationView(APIView):
     """
     View for user registration with email confirmation.
     """
+
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -36,18 +37,38 @@ class RegistrationView(APIView):
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             confirmation_link = request.build_absolute_uri(
-                reverse('email-confirmation', kwargs={'uidb64': uid, 'token': token})
+                reverse('email-confirmation',
+                        kwargs={'uidb64': uid, 'token': token})
             )
 
             try:
-                send_mail(
-                    subject="Bestätige deine Registrierung",
-                    message=f"Bitte bestätige deine Registrierung, indem du auf diesen Link klickst: {confirmation_link}",
-                    from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[user.email],
+                html_message = f"""
+                <html>
+                    <body style="font-family: Arial, sans-serif; text-align: center;">
+                        <img src="{request.build_absolute_uri('../static/images/Logo.png')}" alt="Videoflix" width="150">
+                        <h2 style="color: #4a90e2;">Bestätige deine Registrierung</h2>
+                        <p>Hallo,</p>
+                        <p>Vielen Dank, dass du dich bei <strong>Videoflix</strong> registriert hast. Um die Registrierung abzuschließen und deine E-Mail-Adresse zu bestätigen, klicke bitte auf den untenstehenden Button:</p>
+                        <a href="{confirmation_link}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #4a90e2; text-decoration: none; border-radius: 5px;">
+                            Account aktivieren
+                        </a>
+                        <p>Wenn du kein Konto bei uns erstellt hast, ignoriere bitte diese E-Mail.</p>
+                        <p>Mit freundlichen Grüßen,<br>Dein Videoflix-Team</p>
+                    </body>
+                </html>
+                """
+
+                email = EmailMessage(
+                subject="Bestätige deine Registrierung",
+                body=html_message,
+                from_email=f"Videoflix Support <{settings.EMAIL_HOST_USER}>",
+                to=[user.email],
                 )
+                email.content_subtype = "html"  # Setzt den Inhaltstyp auf HTML
+                email.send()
             except Exception as e:
-                return Response({"error": "Failed to send confirmation email. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                error_message = f"Failed to send confirmation email to {user.email}. Error: {str(e)}"
+                return Response({"error": error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response(
                 {"message": "Registrierung erfolgreich. Bitte überprüfe deine E-Mails zur Bestätigung."},
