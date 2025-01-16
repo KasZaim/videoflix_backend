@@ -9,6 +9,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
 from django.core.mail import send_mail
+from django.conf import settings
+
 
 class UsersView(generics.ListAPIView):
     """
@@ -20,12 +22,13 @@ class UsersView(generics.ListAPIView):
     permission_classes = [IsAdminUser]
     queryset = get_user_model().objects.all()
     serializer_class = CustomUserSerializer
-    
+
+
 class RegistrationView(APIView):
-        """
-        View for user registration with email confirmation.
-        """
-def post(self, request):
+    """
+    View for user registration with email confirmation.
+    """
+    def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -36,33 +39,37 @@ def post(self, request):
                 reverse('email-confirmation', kwargs={'uidb64': uid, 'token': token})
             )
 
-            # Sende Bestätigungs-E-Mail
-            send_mail(
-                subject="Bestätige deine Registrierung",
-                message=f"Bitte bestätige deine Registrierung, indem du auf diesen Link klickst: {confirmation_link}",
-                from_email="noreply@example.com",
-                recipient_list=[user.email],
-            )
+            try:
+                send_mail(
+                    subject="Bestätige deine Registrierung",
+                    message=f"Bitte bestätige deine Registrierung, indem du auf diesen Link klickst: {confirmation_link}",
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[user.email],
+                )
+            except Exception as e:
+                return Response({"error": "Failed to send confirmation email. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             return Response(
                 {"message": "Registrierung erfolgreich. Bitte überprüfe deine E-Mails zur Bestätigung."},
                 status=status.HTTP_201_CREATED,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class EmailConfirmationView(APIView):
-        """
-        View to confirm a user's email address.
-        """
-def get(self, request, uidb64, token):
-        try:
-            uid = urlsafe_base64_encode(uidb64).decode()
-            user = get_user_model().objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
-            return Response({"message": "Ungültiger oder abgelaufener Link."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if default_token_generator.check_token(user, token):
-            user.is_active = True
-            user.save()
-            return Response({"message": "E-Mail erfolgreich bestätigt. Dein Konto ist jetzt aktiv."}, status=status.HTTP_200_OK)
+class EmailConfirmationView(APIView):
+    """
+    View to confirm a user's email address.
+    """
+
+
+def get(self, request, uidb64, token):
+    try:
+        uid = urlsafe_base64_encode(uidb64).decode()
+        user = get_user_model().objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
         return Response({"message": "Ungültiger oder abgelaufener Link."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return Response({"message": "E-Mail erfolgreich bestätigt. Dein Konto ist jetzt aktiv."}, status=status.HTTP_200_OK)
+    return Response({"message": "Ungültiger oder abgelaufener Link."}, status=status.HTTP_400_BAD_REQUEST)

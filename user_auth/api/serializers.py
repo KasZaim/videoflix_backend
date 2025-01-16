@@ -27,7 +27,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         # }
     def validate_email(self, value):
         if get_user_model().objects.filter(email=value).exists():
-            raise serializers.ValidationError("This username is already taken.")
+            raise serializers.ValidationError("This email is already taken.")
         return value
     
     def save(self):
@@ -37,7 +37,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         self.validated_data['username'] = email
         
         if pw != repeated_pw:
-            raise serializers.ValidationError({'password':['The passwords do not match']})
+            raise serializers.ValidationError({'repeated_password':['The passwords do not match']})
         
         user = get_user_model().objects.create_user(
             email=email,
