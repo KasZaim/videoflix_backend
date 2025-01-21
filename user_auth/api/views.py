@@ -6,11 +6,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
-from django.core.mail import send_mail
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.utils.encoding import force_str
+from django.shortcuts import redirect
+from django.http import HttpResponseRedirect
+import os
 
 class UsersView(generics.ListAPIView):
     """
@@ -36,16 +40,15 @@ class RegistrationView(APIView):
             # Generiere Token und UID
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            confirmation_link = request.build_absolute_uri(
-                reverse('email-confirmation',
-                        kwargs={'uidb64': uid, 'token': token})
-            )
+            
+            frontend_domain = os.environ.get('FRONTEND_DOMAIN')
+            confirmation_link = f"{frontend_domain}/verify-email?uid={uid}&token={token}"
 
             try:
                 html_message = f"""
                 <html>
                     <body style="font-family: Arial, sans-serif; text-align: center;">
-                        <img src="{request.build_absolute_uri('../static/images/Logo.png')}" alt="Videoflix" width="150">
+                        <img src="{request.build_absolute_uri('/static/images/logo.png')}" alt="Videoflix" width="150">
                         <h2 style="color: #4a90e2;">Bestätige deine Registrierung</h2>
                         <p>Hallo,</p>
                         <p>Vielen Dank, dass du dich bei <strong>Videoflix</strong> registriert hast. Um die Registrierung abzuschließen und deine E-Mail-Adresse zu bestätigen, klicke bitte auf den untenstehenden Button:</p>
@@ -59,10 +62,10 @@ class RegistrationView(APIView):
                 """
 
                 email = EmailMessage(
-                subject="Bestätige deine Registrierung",
-                body=html_message,
-                from_email=f"Videoflix Support <{settings.EMAIL_HOST_USER}>",
-                to=[user.email],
+                    subject="Bestätige deine Registrierung",
+                    body=html_message,
+                    from_email=f"Videoflix Support <{settings.EMAIL_HOST_USER}>",
+                    to=[user.email],
                 )
                 email.content_subtype = "html"  # Setzt den Inhaltstyp auf HTML
                 email.send()
@@ -81,16 +84,20 @@ class EmailConfirmationView(APIView):
     View to confirm a user's email address.
     """
 
+    def get(self, request, uidb64, token):
+        try:
+            # Decodiere die UID und finde den Benutzer
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = get_user_model().objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+            return Response({"message": "Ungültiger oder abgelaufener Link."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-def get(self, request, uidb64, token):
-    try:
-        uid = urlsafe_base64_encode(uidb64).decode()
-        user = get_user_model().objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        # Überprüfe den Token
+        if default_token_generator.check_token(user, token):
+            user.is_active = True
+            user.save()
+            frontend_domain = os.environ.get('FRONTEND_DOMAIN')
+            return Response({"redirect_url": f"{frontend_domain}/login"}, status=status.HTTP_200_OK)
+
         return Response({"message": "Ungültiger oder abgelaufener Link."}, status=status.HTTP_400_BAD_REQUEST)
-
-    if default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        return Response({"message": "E-Mail erfolgreich bestätigt. Dein Konto ist jetzt aktiv."}, status=status.HTTP_200_OK)
-    return Response({"message": "Ungültiger oder abgelaufener Link."}, status=status.HTTP_400_BAD_REQUEST)
