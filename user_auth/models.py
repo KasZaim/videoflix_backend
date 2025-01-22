@@ -9,3 +9,6 @@ class CustomUser(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     registration_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     email = models.EmailField(unique=True)
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']

@@ -8,13 +8,11 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from django.urls import reverse
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.utils.encoding import force_str
-from django.shortcuts import redirect
-from django.http import HttpResponseRedirect
 import os
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
 
 class UsersView(generics.ListAPIView):
     """
@@ -101,3 +99,44 @@ class EmailConfirmationView(APIView):
             return Response({"redirect_url": f"{frontend_domain}/login"}, status=status.HTTP_200_OK)
 
         return Response({"message": "Ungültiger oder abgelaufener Link."}, status=status.HTTP_400_BAD_REQUEST)
+
+class LoginView(APIView):
+    """
+    View to log in a user and return an authentication token.
+    """
+
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        # Überprüfen, ob beide Felder übergeben wurden
+        if not email or not password:
+            return Response(
+                {"error": "E-Mail und Passwort sind erforderlich."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+        user = authenticate(request, username=email, password=password)
+        
+        if user is None:
+            return Response(
+                {"error": "Ungültige E-Mail oder Passwort."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        if not user.is_active:
+            return Response(
+                {"error": "Dein Konto ist inaktiv. Bitte bestätige deine E-Mail-Adresse."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+            
+        data = {}
+
+        token, created = Token.objects.get_or_create(user=user)
+
+        data = {
+            'token': token.key,
+            'username': user.username,
+            'user_id': user.id
+        }
+
+        return Response(data, status=status.HTTP_200_OK)

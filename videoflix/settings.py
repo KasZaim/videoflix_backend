@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     "django_rq",
     "import_export",
-    "corsheaders"
+    "corsheaders",
+    'rest_framework.authtoken',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -174,6 +175,9 @@ DATABASES = {
 }
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
+         'rest_framework.authentication.TokenAuthentication',
+    ],
+     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
 }
