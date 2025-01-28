@@ -13,6 +13,10 @@ from django.core.mail import EmailMessage
 import os
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+
+User = get_user_model()
 
 class UsersView(generics.ListAPIView):
     """
@@ -140,3 +144,77 @@ class LoginView(APIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+
+class ForgotPasswordView(APIView):
+    """
+    View to handle forgot password requests.
+    """
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "E-Mail-Adresse wird benötigt."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "Kein Benutzer mit dieser E-Mail-Adresse gefunden."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Token und UID generieren
+        token = PasswordResetTokenGenerator().make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        frontend_domain = os.environ.get('FRONTEND_DOMAIN', 'http://localhost:4200')
+        reset_link = f"{frontend_domain}/reset-password?uid={uid}&token={token}"
+
+        # E-Mail senden
+        subject = "Passwort zurücksetzen - Videoflix"
+        message = f"""
+        Hallo {user.username},
+
+        Du hast angefragt, dein Passwort zurückzusetzen. Klicke auf den folgenden Link, um dein Passwort zurückzusetzen:
+
+        {reset_link}
+
+        Wenn du dies nicht angefordert hast, ignoriere diese Nachricht.
+
+        Mit freundlichen Grüßen,
+        Dein Videoflix-Team
+        """
+        email = EmailMessage(subject, message, settings.EMAIL_HOST_USER, [user.email])
+        email.send()
+
+        return Response({"message": "Passwort-Reset-Link wurde an die E-Mail-Adresse gesendet."}, status=status.HTTP_200_OK)
+
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth.hashers import make_password
+
+class ResetPasswordView(APIView):
+    """
+    View to handle password reset requests.
+    """
+
+    def post(self, request):
+        uid = request.data.get('uid')
+        token = request.data.get('token')
+        new_password = request.data.get('new_password')
+
+        if not uid or not token or not new_password:
+            return Response({"error": "Alle Felder sind erforderlich."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_id = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({"error": "Ungültige Benutzer-ID."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not PasswordResetTokenGenerator().check_token(user, token):
+            return Response({"error": "Ungültiger oder abgelaufener Token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Passwort setzen und speichern
+        user.password = make_password(new_password)
+        user.save()
+
+        return Response({"message": "Passwort erfolgreich zurückgesetzt."}, status=status.HTTP_200_OK)
