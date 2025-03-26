@@ -93,8 +93,11 @@ RQ_QUEUES = {
         'DB': 2,
     }
 }
+load_dotenv() 
+ # Lädt die Variablen aus der .env-Datei
 
-load_dotenv()  # Lädt die Variablen aus der .env-Datei
+print("EMAIL_HOST_USER:", os.getenv("EMAIL_HOST_USER"))
+print("EMAIL_HOST_PASSWORD:", os.getenv("EMAIL_HOST_PASSWORD"))
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
