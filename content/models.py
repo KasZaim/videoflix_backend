@@ -8,6 +8,8 @@ class Video(models.Model):
     video_1080p = models.FileField(upload_to='videos/1080p/', blank=True, null=True)
     video_720p = models.FileField(upload_to='videos/720p/', blank=True, null=True)
     video_480p = models.FileField(upload_to='videos/480p/', blank=True, null=True)
+    thumbnail = models.FileField(upload_to='img/thumbnails/', blank=True, null=True, help_text="Erlaubte Bildformate: JPG, PNG, WEBP. Empfohlene Größe: 1280x720px.")
+    category = models.CharField(max_length=50 , null=True, blank=True)
     
     def __str__(self):
         return self.title
