@@ -12,7 +12,7 @@ class VideoResource(resources.ModelResource):
 @admin.register(Video)
 class VideoAdmin(ImportExportModelAdmin):
     readonly_fields = ('video_1080p', 'video_720p', 'video_480p')  # Nur anzeigen, nicht bearbeitbar
-    fields = ('title', 'description', 'original_video_file', 'video_1080p', 'video_720p', 'video_480p', 'created_at')
+    fields = ('title', 'description', 'original_video_file', 'video_1080p', 'video_720p', 'video_480p', 'created_at', 'thumbnail', 'category')
     list_display = ('title', 'created_at')
 
 def get_readonly_fields(self, request, obj=None):
