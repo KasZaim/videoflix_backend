@@ -5,7 +5,7 @@ class Video(models.Model):
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=500)
     original_video_file = models.FileField(upload_to='videos/originals/', blank=True, null=True)
-    video_1080p = models.FileField(upload_to='videos/1080/', blank=True, null=True)
+    video_1080p = models.FileField(upload_to='videos/1080p/', blank=True, null=True)
     video_720p = models.FileField(upload_to='videos/720p/', blank=True, null=True)
     video_480p = models.FileField(upload_to='videos/480p/', blank=True, null=True)
     

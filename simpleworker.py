@@ -1,3 +1,11 @@
+import os
+import sys
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'videoflix.settings')
+
+import django
+django.setup()
+
 from rq import Worker
 
 
