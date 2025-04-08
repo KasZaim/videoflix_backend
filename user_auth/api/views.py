@@ -11,9 +11,13 @@ from django.utils.encoding import force_bytes
 from django.conf import settings
 from django.core.mail import EmailMessage
 import os
+import base64
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.template.loader import render_to_string
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 
 User = get_user_model()
@@ -47,10 +51,16 @@ class RegistrationView(APIView):
             confirmation_link = f"{frontend_domain}/verify-email?uid={uid}&token={token}"
 
             try:
+                # Read the logo image and encode it as base64
+                logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'logo.png')
+                with open(logo_path, 'rb') as image_file:
+                    encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+                
+                # Create the HTML message with embedded image
                 html_message = f"""
                 <html>
                     <body style="font-family: Arial, sans-serif; text-align: center;">
-                        <img src="{request.build_absolute_uri('/static/images/logo.png')}" alt="Videoflix" width="150">
+                        <img src="data:image/png;base64,{encoded_image}" alt="Videoflix" width="150">
                         <h2 style="color: #4a90e2;">Bestätige deine Registrierung</h2>
                         <p>Hallo,</p>
                         <p>Vielen Dank, dass du dich bei <strong>Videoflix</strong> registriert hast. Um die Registrierung abzuschließen und deine E-Mail-Adresse zu bestätigen, klicke bitte auf den untenstehenden Button:</p>
