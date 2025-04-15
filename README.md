@@ -30,6 +30,7 @@ Videoflix is a video streaming platform backend built with Django and Django RES
   - Asynchronous video transcoding
   - Email sending via background workers
 
+
 ## Technology Stack
 
 - **Backend Framework**: Django 5.1.4
@@ -114,6 +115,53 @@ Videoflix is a video streaming platform backend built with Django and Django RES
    ```bash
    python manage.py rqworker --worker-class simpleworker.SimpleWorker
    ```
+
+
+## Video Upload
+
+### Accepted Video Formats
+- MP4 (.mp4)
+- AVI (.avi)
+- MOV (.mov)
+- MKV (.mkv)
+- WMV (.wmv)
+- FLV (.flv)
+- WEBM (.webm)
+
+### Upload Methods
+
+#### 1. Django Admin Panel
+1. Log in to the Django admin panel at `/admin/`
+2. Navigate to "Videos" section
+3. Click "Add Video"
+4. Fill in the required fields:
+   - Title
+   - Description
+   - Original Video File (select from your computer)
+   - Thumbnail (optional, recommended size: 1280x720px)
+   - Category (optional)
+5. Click "Save"
+
+#### 2. API Upload
+Use the following endpoint to upload videos via API:
+
+```http
+POST /api/videos/
+Content-Type: multipart/form-data
+
+{
+    "title": "Video Title",
+    "description": "Video Description",
+    "original_video_file": [binary file],
+    "thumbnail": [binary file] (optional),
+    "category": "Category Name" (optional)
+}
+```
+
+**Note**: 
+- Videos are automatically converted to multiple qualities (1080p, 720p, 480p)
+- Thumbnails are optional but recommended
+- All uploaded files are automatically deleted when the video is deleted
 
 ## API Endpoints
 
