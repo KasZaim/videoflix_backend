@@ -47,6 +47,7 @@ Videoflix is a video streaming platform backend built with Django and Django RES
 - Python 3.8+
 - Redis server
 - PostgreSQL (for production)
+- WSL (Windows Subsystem for Linux) with PostgreSQL installed
 
 ### Setup
 
@@ -82,22 +83,34 @@ Videoflix is a video streaming platform backend built with Django and Django RES
    FRONTEND_DOMAIN=http://localhost:4200
    ```
 
-5. Run migrations:
+5. **WSL PostgreSQL Setup**:
+   ```bash
+   # In WSL terminal
+   pip3 install -r requirements_lin.txt
+   sudo service postgresql start
+   sudo -u postgres psql
+   
+   # In PostgreSQL prompt
+   CREATE DATABASE videoflix;
+   \q
+   ```
+
+6. Run migrations:
    ```bash
    python manage.py migrate
    ```
 
-6. Create a superuser:
+7. Create a superuser:
    ```bash
    python manage.py createsuperuser
    ```
 
-7. Start the development server:
+8. Start the development server:
    ```bash
    python manage.py runserver
    ```
 
-8. Start the Redis worker for background tasks:
+9. Start the Redis worker for background tasks:
    ```bash
    python manage.py rqworker --worker-class simpleworker.SimpleWorker
    ```
