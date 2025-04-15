@@ -60,7 +60,7 @@ Videoflix is a video streaming platform backend built with Django and Django RES
    ```bash
    # Windows
    python -m venv venv
-   venv\Scripts\activate
+   .venv\Scripts\activate
 
    # Linux/Mac
    python -m venv venv
