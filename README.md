@@ -79,7 +79,9 @@ Videoflix is a video streaming platform backend built with Django and Django RES
    EMAIL_USE_TLS=True
    EMAIL_HOST_USER=your-email@example.com
    EMAIL_HOST_PASSWORD=your-email-password
-   FRONTEND_DOMAIN=http://localhost:4200
+
+   FRONTEND_DOMAIN='http://localhost:4200' 
+   BACKEND_DOMAIN='http://127.0.0.1:8000'
    ```
 
 5. Run migrations:
