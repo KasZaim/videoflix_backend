@@ -30,6 +30,7 @@ Videoflix is a video streaming platform backend built with Django and Django RES
   - Asynchronous video transcoding
   - Email sending via background workers
 
+
 ## Technology Stack
 
 - **Backend Framework**: Django 5.1.4
@@ -47,6 +48,7 @@ Videoflix is a video streaming platform backend built with Django and Django RES
 - Python 3.8+
 - Redis server
 - PostgreSQL (for production)
+- WSL (Windows Subsystem for Linux) with PostgreSQL installed
 
 ### Setup
 
@@ -60,7 +62,7 @@ Videoflix is a video streaming platform backend built with Django and Django RES
    ```bash
    # Windows
    python -m venv venv
-   venv\Scripts\activate
+   .venv\Scripts\activate
 
    # Linux/Mac
    python -m venv venv
@@ -84,25 +86,84 @@ Videoflix is a video streaming platform backend built with Django and Django RES
    BACKEND_DOMAIN='http://127.0.0.1:8000'
    ```
 
-5. Run migrations:
+5. **WSL PostgreSQL Setup**:
+   ```bash
+   # In WSL terminal
+   pip3 install -r requirements_lin.txt
+   sudo service postgresql start
+   sudo -u postgres psql
+   
+   # In PostgreSQL prompt
+   CREATE DATABASE videoflix;
+   \q
+   ```
+
+6. Run migrations:
    ```bash
    python manage.py migrate
    ```
 
-6. Create a superuser:
+7. Create a superuser:
    ```bash
    python manage.py createsuperuser
    ```
 
-7. Start the development server:
+8. Start the development server:
    ```bash
    python manage.py runserver
    ```
 
-8. Start the Redis worker for background tasks:
+9. Start the Redis worker for background tasks:
    ```bash
    python manage.py rqworker --worker-class simpleworker.SimpleWorker
    ```
+
+
+## Video Upload
+
+### Accepted Video Formats
+- MP4 (.mp4)
+- AVI (.avi)
+- MOV (.mov)
+- MKV (.mkv)
+- WMV (.wmv)
+- FLV (.flv)
+- WEBM (.webm)
+
+### Upload Methods
+
+#### 1. Django Admin Panel
+1. Log in to the Django admin panel at `/admin/`
+2. Navigate to "Videos" section
+3. Click "Add Video"
+4. Fill in the required fields:
+   - Title
+   - Description
+   - Original Video File (select from your computer)
+   - Thumbnail (optional, recommended size: 1280x720px)
+   - Category (optional)
+5. Click "Save"
+
+#### 2. API Upload
+Use the following endpoint to upload videos via API:
+
+```http
+POST /api/videos/
+Content-Type: multipart/form-data
+
+{
+    "title": "Video Title",
+    "description": "Video Description",
+    "original_video_file": [binary file],
+    "thumbnail": [binary file] (optional),
+    "category": "Category Name" (optional)
+}
+```
+
+**Note**: 
+- Videos are automatically converted to multiple qualities (1080p, 720p, 480p)
+- Thumbnails are optional but recommended
+- All uploaded files are automatically deleted when the video is deleted
 
 ## API Endpoints
 
