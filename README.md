@@ -187,9 +187,50 @@ Content-Type: multipart/form-data
 
 ### Running Tests
 
+Tests for this project use SQLite instead of PostgreSQL to ensure they can run independently of the database setup. This is especially useful when your PostgreSQL database is running in WSL.
+
+To run all tests with SQLite:
+
 ```bash
-python manage.py test
+python manage.py test --settings=videoflix.test_settings
 ```
+
+To run specific test modules:
+
+```bash
+# Run only user authentication tests
+python manage.py test user_auth.tests --settings=videoflix.test_settings
+
+# Run only content tests
+python manage.py test content.tests --settings=videoflix.test_settings
+```
+
+To run a specific test class or method:
+
+```bash
+# Run only RegistrationViewTest class tests
+python manage.py test user_auth.tests.RegistrationViewTest --settings=videoflix.test_settings
+
+# Run a specific test method
+python manage.py test user_auth.tests.RegistrationViewTest.test_user_registration_success --settings=videoflix.test_settings
+```
+
+The test suite includes:
+
+- **User Authentication Tests**
+  - Registration with email verification
+  - Email confirmation
+  - Login functionality
+  - Password reset
+
+- **Content Management Tests**
+  - Video listing and retrieval
+  - Proper URL generation for videos
+
+During tests:
+- Emails are sent to the console instead of actual email services
+- Redis queue operations are mocked to avoid Redis server dependency
+- Media files are stored in a separate test directory
 
 ## Deployment
 
