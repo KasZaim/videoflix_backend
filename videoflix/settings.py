@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['34.91.66.249', '127.0.0.1', 'localhost']
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
@@ -166,12 +166,12 @@ WSGI_APPLICATION = 'videoflix.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # PostgreSQL Backend
-        'NAME': 'videoflix',  # Name der Datenbank
-        'USER': 'kaser',      # PostgreSQL-Benutzername
-        'PASSWORD': '22061993',  # Passwort des Benutzers
-        'HOST': 'localhost',  # Hostname, 'localhost' für lokale Verbindungen
-        'PORT': '',       # Standard-Port für PostgreSQL
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 REST_FRAMEWORK = {
