@@ -30,10 +30,11 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['34.91.66.249', '127.0.0.1', 'localhost']
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
+    'http://34.91.66.249',
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -60,6 +61,7 @@ INSTALLED_APPS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "http://127.0.0.1:4200",
+    'http://34.91.66.249',
 ]
 
 FRONTEND_URL = "http://localhost:4200/login"
