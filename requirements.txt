@@ -12,13 +12,15 @@ django-rq==3.0.0
 djangorestframework==3.15.2
 ffmpeg-python==0.2.0
 future==1.0.0
+gunicorn==23.0.0
+packaging==25.0
 pillow==11.2.1
 psycopg2-binary==2.9.10
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 redis==5.2.1
 rq==2.1.0
-rq-win@ git+https://github.com/michaelbrooks/rq-win.git@c6e65e38f8a6ca99a0c8e0dd6fe35f9b92837cca
+rq-win @ git+https://github.com/michaelbrooks/rq-win.git@c6e65e38f8a6ca99a0c8e0dd6fe35f9b92837cca
 six==1.17.0
 sqlparse==0.5.3
 tablib==3.7.0
