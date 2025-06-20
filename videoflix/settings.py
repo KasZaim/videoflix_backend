@@ -28,12 +28,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['34.91.66.249', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['34.91.66.249', '127.0.0.1','videoflixapi.kaserm.dev',
+ 'localhost']
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
+    'http://34.91.66.249',
+    'http://videoflixapi.kaserm.dev',  # Domain hinzufügen
+    'https://videoflixapi.kaserm.dev'
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -50,7 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'content.apps.ContentConfig',
     'user_auth',
-    'debug_toolbar',
+    #'debug_toolbar',
     "django_rq",
     "import_export",
     "corsheaders",
@@ -60,6 +64,11 @@ INSTALLED_APPS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "http://127.0.0.1:4200",
+    'http://34.91.66.249',
+    'http://videoflixapi.kaserm.dev',
+    'https://kaserm.dev',
+    'https://videoflix.kaserm.dev'
+	
 ]
 
 FRONTEND_URL = "http://localhost:4200/login"
@@ -108,7 +117,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+   # "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -175,7 +184,7 @@ DATABASES = {
     }
 }
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': [
          'rest_framework.authentication.TokenAuthentication',
     ],
      'DEFAULT_RENDERER_CLASSES': [
