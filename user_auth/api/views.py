@@ -175,7 +175,7 @@ class ForgotPasswordView(APIView):
         # Token und UID generieren
         token = PasswordResetTokenGenerator().make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        frontend_domain = os.environ.get('FRONTEND_DOMAIN', 'http://localhost:4200')
+        frontend_domain = os.environ.get('FRONTEND_DOMAIN')
         reset_link = f"{frontend_domain}/reset-password?uid={uid}&token={token}"
 
         # E-Mail senden
