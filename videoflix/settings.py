@@ -71,7 +71,8 @@ CORS_ALLOWED_ORIGINS = [
 	
 ]
 
-FRONTEND_URL = "http://localhost:4200/login"
+FRONTEND_DOMAIN = os.getenv('FRONTEND_DOMAIN')
+BACKEND_DOMAIN = os.getenv('BACKEND_DOMAIN')
 
 AUTH_USER_MODEL = 'user_auth.CustomUser'
 
