@@ -1,6 +1,9 @@
 import subprocess
 import os
 import shutil
+import django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "videoflix_backend.settings")  # ggf. anpassen
+django.setup()
 from content.models import Video
 from django.conf import settings
 
