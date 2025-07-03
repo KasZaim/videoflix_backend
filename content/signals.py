@@ -12,7 +12,7 @@ def video_post_Save(sender, instance, created, **kwargs):
     if created and instance.original_video_file:
         print("Neues Video gespeichert – starte Konvertierung...")
         queue = django_rq.get_queue('default', autocommit=True)
-        queue.enqueue(convert_all_qualities, instance.original_video_file.path, instance.id)
+        queue.enqueue(convert_all_qualities, instance.original_video_file.path, instance.id, timeout=3600)
             
 
 @receiver(post_delete, sender=Video)
