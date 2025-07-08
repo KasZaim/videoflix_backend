@@ -25,7 +25,11 @@ urlpatterns = [
     path('django-rq/', include('django_rq.urls')),
     path('api/', include('user_auth.api.urls')),
     path('api/', include('content.api.urls')),
-] + debug_toolbar_urls() + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+] + debug_toolbar_urls()
 
+# Medien-Dateien (wie bisher)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Statische Dateien (NEU HINZUFÜGEN!)
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
