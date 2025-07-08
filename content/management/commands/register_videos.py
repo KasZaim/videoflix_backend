@@ -52,58 +52,44 @@ class Command(BaseCommand):
             ("480p", "video_480p")
         ]  # Entsprechend der Modellfelder und Ordnerstruktur
         
+        # Alle Videos nach Namen sammeln
+        video_files_by_name = {}
         for quality_folder, model_field in qualities:
             quality_path = os.path.join(video_path, quality_folder)
-            
             if not os.path.exists(quality_path):
                 self.stdout.write(
                     self.style.WARNING(f'Quality folder {quality_path} does not exist')
                 )
                 continue
-                
-            self.stdout.write(f'Processing {quality_folder} quality videos...')
-            
-            # Find all video files in this quality folder
-            video_files = []
             for ext in video_extensions:
-                video_files.extend(glob.glob(os.path.join(quality_path, ext)))
-            
-            for video_file in video_files:
-                filename = os.path.basename(video_file)
-                relative_path = os.path.relpath(video_file, settings.MEDIA_ROOT)
-                
-                if dry_run:
-                    self.stdout.write(f'Would register: {filename} ({quality_folder})')
-                    continue
-                
-                # Try to find existing video record
-                try:
-                    video = Video.objects.get(title=filename.rsplit('.', 1)[0])
-                    
-                    # Update the video file path based on quality
-                    setattr(video, model_field, relative_path)
-                    video.save()
-                    self.stdout.write(
-                        self.style.SUCCESS(f'Updated existing video: {filename} ({quality_folder})')
-                    )
-                    
-                except Video.DoesNotExist:
-                    # Create new video record
-                    video_data = {
-                        'title': filename.rsplit('.', 1)[0],  # Remove extension
-                        'description': f'Auto-imported video: {filename}',
-                        model_field: relative_path
-                    }
-                    
-                    video = Video.objects.create(**video_data)
-                    self.stdout.write(
-                        self.style.SUCCESS(f'Created new video: {filename} ({quality_folder})')
-                    )
-                
-                except Exception as e:
-                    self.stdout.write(
-                        self.style.ERROR(f'Error processing {filename}: {str(e)}')
-                    )
+                for video_file in glob.glob(os.path.join(quality_path, ext)):
+                    filename = os.path.basename(video_file)
+                    name_ohne_endung = filename.rsplit('.', 1)[0]
+                    relative_path = os.path.relpath(video_file, settings.MEDIA_ROOT)
+                    if name_ohne_endung not in video_files_by_name:
+                        video_files_by_name[name_ohne_endung] = {}
+                    video_files_by_name[name_ohne_endung][model_field] = relative_path
+        # Jetzt pro Video-Name ein Objekt anlegen oder aktualisieren
+        for name, qualities_dict in video_files_by_name.items():
+            if dry_run:
+                self.stdout.write(f"Would register: {name} mit Qualitäten: {list(qualities_dict.keys())}")
+                continue
+            try:
+                video = Video.objects.get(title=name)
+                for field, path in qualities_dict.items():
+                    setattr(video, field, path)
+                video.save()
+                self.stdout.write(self.style.SUCCESS(f"Updated existing video: {name} mit Qualitäten: {list(qualities_dict.keys())}"))
+            except Video.DoesNotExist:
+                video_data = {
+                    'title': name,
+                    'description': f'Auto-imported video: {name}',
+                }
+                video_data.update(qualities_dict)
+                video = Video.objects.create(**video_data)
+                self.stdout.write(self.style.SUCCESS(f"Created new video: {name} mit Qualitäten: {list(qualities_dict.keys())}"))
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f"Error processing {name}: {str(e)}"))
         
         if not dry_run:
             self.stdout.write(
